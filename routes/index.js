@@ -1,11 +1,3 @@
-const { json } = require('express');
-var express = require('express');
-var fs = require('fs');
-var path = require('path')
-var bodyParser = require('body-parser')
-// const { path } = require('../app');
-var router = express.Router();
-let directory = './responses'
 var redisClient = require("../redisClient")
 const USER_KEY = "user"
 module.exports.signup = async (req, res) => {
@@ -25,10 +17,10 @@ module.exports.signup = async (req, res) => {
                     "username": username,
                     "password": password
                 }
-                redisClient.set(key, value=JSON.stringify(newUser)).then(() => {
+                redisClient.set(key, value = JSON.stringify(newUser)).then(() => {
                     res.send({
                         "status": "Success",
-                        "user":  newUser
+                        "user": newUser
                     })
                 }).catch(() => {
                     res.send({
@@ -48,7 +40,7 @@ module.exports.signup = async (req, res) => {
             res.send({
                 "status": "Failure",
                 "error": "Username required"
-            }) 
+            })
         } else {
             res.send({
                 "status": "Failure",
@@ -75,8 +67,8 @@ module.exports.signin = async (req, res) => {
                 let newUser = JSON.parse(user)
                 res.send({
                     "status": "Success",
-                    "user":  newUser
-                }) 
+                    "user": newUser
+                })
             }
         }).catch(() => {
             res.send({
@@ -89,7 +81,7 @@ module.exports.signin = async (req, res) => {
             res.send({
                 "status": "Failure",
                 "error": "Username required"
-            }) 
+            })
         } else {
             res.send({
                 "status": "Failure",
@@ -98,4 +90,49 @@ module.exports.signin = async (req, res) => {
         }
 
     }
+}
+
+module.exports.updateUserDetails = async (req, res) => {
+    let username = req.body.username
+    let tiers = req.body.tiers
+    let species = req.body.species
+    let shedDimensions = req.body.shedDimensions
+    let state = req.body.state
+
+    let key = USER_KEY + ":" + username
+    await redisClient.get(key).then(async user => {
+        if (user == null || user == undefined) {
+            res.send({
+                "status": "Failure",
+                "error": "User not found"
+            })
+        } else {
+            let newUser = JSON.parse(user)
+            let updatedUser = {
+                ...newUser,
+                tiers: tiers,
+                species: species,
+                shedDimensions: shedDimensions,
+                state: state
+            }
+
+            redisClient.set(key, value = JSON.stringify(updatedUser)).then(() => {
+                res.send({
+                    "status": "Success",
+                    "user": updatedUser
+                })
+            }).catch(() => {
+                res.send({
+                    "status": "Failure",
+                    "error": "Server error, try again"
+                })
+            })
+
+        }
+    }).catch(() => {
+        res.send({
+            "status": "Failure",
+            "error": "Cannot Search for user"
+        })
+    })
 }
