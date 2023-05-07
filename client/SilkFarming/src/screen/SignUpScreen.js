@@ -10,6 +10,9 @@ const SignUpScreen = () => {
     const handleSignUp = () => {
         // handle sign-up logic here
     }
+    const callIsLogin = () => {
+        navigation.navigate('Login');
+    }
 
     return (
         <View style={styles.container}>
@@ -55,7 +58,7 @@ const SignUpScreen = () => {
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
                     Already have an account?{' '}
-                    <Text style={styles.footerLink}>Login</Text>
+                    <Text style={styles.footerLink} onPress={callIsLogin}>Login</Text>
                 </Text>
             </View>
         </View>

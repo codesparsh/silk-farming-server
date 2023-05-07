@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
+import SignUpScreen from './SignUpScreen';
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}) => {
+    
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    const [isSignUp, setIsSignUP] = useState(false);
     const handleLogin = () => {
         // handle login logic here
     }
-
+    const callIsSignUp = () => {
+        navigation.navigate('SignUp');
+    }
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -44,7 +48,7 @@ const LoginScreen = () => {
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
                     Don't have an account yet?{' '}
-                    <Text style={styles.footerLink}>Sign up</Text>
+                    <Text style={styles.footerLink} onPress={callIsSignUp}>Sign up</Text>
                 </Text>
             </View>
         </View>
