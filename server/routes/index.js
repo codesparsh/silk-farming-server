@@ -194,6 +194,29 @@ module.exports.listFeeds = async (req, res) => {
     })
 }
 
+
+module.exports.registration = async (req, res) => {
+    let registrationToken = req.body.registrationToken
+    if (registrationToken != null && registrationToken != undefined) {
+        redisClient.set("registrationToken", value = registrationToken).then(() => {
+            res.send({
+                "status": "Success",
+                "message": "Token Saved"
+            })
+        }).catch(() => {
+            res.send({
+                "status": "Failure",
+                "error": "DB Error"
+            })
+        })
+    } else {
+        res.send({
+            "status": "Failure",
+            "error": "Invalid Token"
+        })
+    }
+}
+
 function sendTemperatureNotification(registrationToken) {
     const message = {
         data: {
@@ -233,7 +256,13 @@ cron.schedule("*/10 * * * * *", () => {
                 humidity: feed.field2
             }
 
-            // if (entry.temperature > )
+            if (entry.temperature > 0 && entry.temperature < 0) {
+
+            }
+
+            if (entry.humidity > 0  && entry.humidity < 0) {
+
+            }
 
             redisClient.set(key, value = JSON.stringify(entry)).then(() => {
                 console.log("New Feed Update - ID:" + feed.entry_id)
