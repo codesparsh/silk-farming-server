@@ -2,8 +2,14 @@ let cron = require("node-cron")
 let http = require("http")
 var redisClient = require("../redisClient")
 const { parse } = require("path")
+const { admin } = require('../firebase-config')
 const USER_KEY = "user"
 const FARM_KEY = "farm"
+
+const notification_options = {
+    priority: "high",
+    timeToLive: 60 * 60 * 24
+};
 
 module.exports.signup = async (req, res) => {
     let username = req.body.username
@@ -69,11 +75,11 @@ module.exports.signin = async (req, res) => {
                     "error": "User not found, please sign in"
                 })
             } else {
-                if (password == user.password) {
-                    let newUser = JSON.parse(user)
+                let parsedUser = JSON.parse(user)
+                if (password == parsedUser.password) {
                     res.send({
                         "status": "Success",
-                        "user": newUser
+                        "user": parsedUser
                     })
                 } else {
                     res.send({
@@ -81,7 +87,7 @@ module.exports.signin = async (req, res) => {
                         "error": "Incorrect Password"
                     })
                 }
-                
+
             }
         }).catch(() => {
             res.send({
@@ -112,6 +118,7 @@ module.exports.updateUserDetails = async (req, res) => {
     let shedDimensions = req.body.shedDimensions
     let state = req.body.state
     let lastSanitation = req.body.sanitation
+    let registrationToken = req.body.registrationToken
 
     let key = USER_KEY + ":" + username
     await redisClient.get(key).then(async user => {
@@ -189,6 +196,25 @@ module.exports.listFeeds = async (req, res) => {
     })
 }
 
+function sendTemperatureNotification (registrationToken) {
+    const message = {
+        data: {
+            score: '850',
+            time: '2:45'
+        },
+        token: registrationToken
+    };
+
+    getMessaging().send(message)
+        .then((response) => {
+            console.log('Successfully sent message:', response);
+        })
+        .catch((error) => {
+            console.log('Error sending message:', error);
+        });
+}
+
+
 cron.schedule("*/10 * * * * *", () => {
     console.log("Cron Job runing every 10 second")
     http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, (response) => {
@@ -208,6 +234,10 @@ cron.schedule("*/10 * * * * *", () => {
             let humidity = feed.field2
 
             console.log({ temperature: temperature, humidity: humidity })
+
+            if (temperature != null && temperature != undefined && registrationToken != null && registrationToken != undefined) {
+                sendTemperatureNotification(registrationToken);
+            } 
 
             let key = FARM_KEY + ":" + channelId
             let feedArr = []
