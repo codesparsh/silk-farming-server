@@ -69,7 +69,7 @@ const SilkwormForm = () => {
         onChangeText={(text) => setNumTiers(text)}
       />
 
-      <Text style={styles.label}>Dimensions of rearing shed in sq ft</Text>
+      <Text style={styles.label}>Dimensions of rearing shed in acre</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter dimensions of rearing shed"

@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
-import {URL} from "../component/constant" 
+import { URL } from "../component/constant"
 import SignUpScreen from './SignUpScreen';
+// import app from '../../firbaseConfig'
+// import messaging from '@react-native-firebase/messaging';
+
 
 const LoginScreen = ({ navigation }) => {
-
+    
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    
+
     const handleLogin = () => {
         fetch(`${URL}/signin`, {
             method: 'POST',
@@ -23,8 +26,9 @@ const LoginScreen = ({ navigation }) => {
         })
             .then(response => response.json())
             .then(data => {
+                // callToken
                 if (data.status === "Success") {
-                    navigation.navigate('Home');
+                    navigation.navigate('Home', { user: data.user });
                 }
                 console.log(data);
             })

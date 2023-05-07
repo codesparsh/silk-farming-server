@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "170527371204",
+    "project_id": "silk-farming",
+    "storage_bucket": "silk-farming.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:170527371204:android:e249ed251334684e443e91",
+        "android_client_info": {
+          "package_name": "com.company.silkfarming"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "170527371204-shas02gnkaijram5v2i3849kvbtl8vie.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDt8nzY_yuaJewCmPs90zrSzNvD3tVSKWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "170527371204-shas02gnkaijram5v2i3849kvbtl8vie.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

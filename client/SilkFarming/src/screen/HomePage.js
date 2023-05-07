@@ -13,6 +13,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [temp, setTemp] = useState('NA');
   const [humidity, setHumidity] = useState('NA');
+  const [sanitation, setSanitation] = useState('NA');
   const route = useRoute();
   const navigation = useNavigation();
   const { user } = route.params
@@ -20,6 +21,7 @@ const HomePage = () => {
     if (user !== undefined && user !== null) {
       setLoading(false)
     }
+    setSanitation(user.sanitation)
   }, [user]);
 
   const formatDate = (isoDateString) => {
@@ -32,11 +34,34 @@ const HomePage = () => {
     const month = date.toLocaleString("default", { month: "short" });
     const year = date.getFullYear();
 
-    return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm} on ${day} ${month} ${year}`;
+    return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm}, ${day} ${month} ${year}`;
   }
 
   const callInputScreen = () => {
     navigation.navigate('Input', { username: user.username })
+  }
+  const callUpdateSanitation = () => {
+    console.log("in")
+    const currentDate = new Date();
+
+    fetch(`${URL}/user/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: user.username,
+        sanitation: formatDate(currentDate.toISOString())
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        setSanitation(formatDate(currentDate.toISOString()))
+        console.log(data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
   }
   const callTempAndHumidity = () => {
     fetch(`${URL}/list/feeds`, {
@@ -50,8 +75,8 @@ const HomePage = () => {
     })
       .then(response => response.json())
       .then(data => {
-        if(data.feeds.temperature!= null) setTemp(data.feeds.temperature)
-        if(data.feeds.humidity!= null) setHumidity(data.feeds.humidity)
+        if(data.feeds[0].temperature!= null) setTemp(data.feeds[0].temperature)
+        if(data.feeds[0].humidity!= null) setHumidity(data.feeds[0].humidity)
         console.log(data);
       })
       .catch(error => {
@@ -147,7 +172,7 @@ const HomePage = () => {
         
         <View style={styles.card}>
           <TouchableOpacity style={styles.temperatureButton}>
-            <Text style={styles.temperatureButtonText}>View Sanitaion Logs</Text>
+            <Text style={styles.temperatureButtonText} onPress={callUpdateSanitation}>Add Sanitaion Logs</Text>
           </TouchableOpacity>
           <View style={styles.content}>
             <View style={styles.contentItem}>
@@ -157,7 +182,7 @@ const HomePage = () => {
                 color="#fff"
               />
               <Text style={styles.contentText}>
-                Last sanitation was done on<Text style={styles.contentTextBold}> 4 Apr 20122</Text>
+                Last sanitation was done on<Text style={styles.contentTextBold}> {sanitation}</Text>
               </Text>
             </View>
 
@@ -260,6 +285,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 2,
+    
   },
 });
 
