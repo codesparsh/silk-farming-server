@@ -118,7 +118,6 @@ module.exports.updateUserDetails = async (req, res) => {
     let shedDimensions = req.body.shedDimensions
     let state = req.body.state
     let lastSanitation = req.body.sanitation
-    let registrationToken = req.body.registrationToken
 
     let key = USER_KEY + ":" + username
     await redisClient.get(key).then(async user => {
@@ -169,10 +168,9 @@ module.exports.listFeeds = async (req, res) => {
             let key = FARM_KEY + ":" + channelId
             await redisClient.get(key).then((data) => {
                 let parsedData = JSON.parse(data)
-                let feedArr = (parsedData.feeds == null || parsedData.feeds == undefined) ? [] : parsedData.feeds
                 res.send({
                     "status": "Success",
-                    "feeds": feedArr
+                    "data": parsedData
                 })
             }).catch(() => {
                 res.send({
@@ -196,7 +194,7 @@ module.exports.listFeeds = async (req, res) => {
     })
 }
 
-function sendTemperatureNotification (registrationToken) {
+function sendTemperatureNotification(registrationToken) {
     const message = {
         data: {
             score: '850',
@@ -217,60 +215,77 @@ function sendTemperatureNotification (registrationToken) {
 
 cron.schedule("*/10 * * * * *", () => {
     console.log("Cron Job runing every 10 second")
+
     http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, (response) => {
-
         let data = '';
-
         response.on('data', (chunk) => {
             data += chunk;
         });
-
         response.on('end', () => {
-            console.log('Retrieved all data');
             let parsedData = JSON.parse(data);
             let channelId = parsedData.channel.id
-            let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
-            let temperature = feed.field1
-            let humidity = feed.field2
-
-            console.log({ temperature: temperature, humidity: humidity })
-
-            if (temperature != null && temperature != undefined && registrationToken != null && registrationToken != undefined) {
-                sendTemperatureNotification(registrationToken);
-            } 
-
             let key = FARM_KEY + ":" + channelId
-            let feedArr = []
+            let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
+            let entry = {
+                entry_id: feed.entry_id,
+                created_at: feed.created_at,
+                temperature: feed.field1,
+                humidity: feed.field2
+            }
 
-            redisClient.get(key).then(feedArrData => {
-                if (feedArrData != null || feedArrData != undefined) {
-                    parsedFeedData = JSON.parse(feedArrData)
-                    feedArr = (parsedFeedData.feeds == null || parsedFeedData.feeds == undefined) ? [] : parsedFeedData.feeds
-                } else {
-                    feedArr = []
-                }
+            // if (entry.temperature > )
 
-
-                let findEntry = feedArr.find((entry) => entry.entry_id == feed.entry_id)
-                if (findEntry == null || findEntry == undefined) {
-                    feedArr.push({
-                        "entry_id": feed.entry_id,
-                        "created_at": feed.created_at,
-                        "temperature": temperature,
-                        "humidity": humidity
-                    })
-                }
-
-                redisClient.set(key, value = JSON.stringify({ "feeds": feedArr })).then(() => {
-                    console.log("New Feed Update - ID:" + feed.entry_id)
-                }).catch(() => {
-                    console.log("Cannot update feed in db - ID:" + feed.entry_id)
-                })
-            }).catch(err => {
-                console.log(err)
+            redisClient.set(key, value = JSON.stringify(entry)).then(() => {
+                console.log("New Feed Update - ID:" + feed.entry_id)
+            }).catch(() => {
+                console.log("Cannot update feed in db - ID:" + feed.entry_id)
             })
-
-
         })
     })
 })
+
+
+            // let channelId = parsedData.channel.id
+                    // let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
+                    // let temperature = feed.field1
+                    // let humidity = feed.field2
+        
+                    // console.log({ temperature: temperature, humidity: humidity })
+                    // if (humidity > 50) {
+                    //     console.log("Greater humidity")
+                    // }
+                    // if (temperature != null && temperature != undefined) {
+                    //     sendTemperatureNotification(registrationToken);
+                    // }
+        
+                    // let key = FARM_KEY + ":" + channelId
+                    // let feedArr = []
+        
+                    // redisClient.get(key).then(feedArrData => {
+                    //     if (feedArrData != null || feedArrData != undefined) {
+                    //         parsedFeedData = JSON.parse(feedArrData)
+                    //         feedArr = (parsedFeedData.feeds == null || parsedFeedData.feeds == undefined) ? [] : parsedFeedData.feeds
+                    //     } else {
+                    //         feedArr = []
+                    //     }
+        
+        
+                    //     let findEntry = feedArr.find((entry) => entry.entry_id == feed.entry_id)
+                    //     if (findEntry == null || findEntry == undefined) {
+                    //         feedArr.push({
+                    //             "entry_id": feed.entry_id,
+                    //             "created_at": feed.created_at,
+                    //             "temperature": temperature,
+                    //             "humidity": humidity
+                    //         })
+                    //     }
+        
+                    //     redisClient.set(key, value = JSON.stringify({ "feeds": feedArr })).then(() => {
+                    //         console.log("New Feed Update - ID:" + feed.entry_id)
+                    //     }).catch(() => {
+                    //         console.log("Cannot update feed in db - ID:" + feed.entry_id)
+                    //     })
+                    // }).catch(err => {
+                    //     console.log(err)
+                    // })
+        
