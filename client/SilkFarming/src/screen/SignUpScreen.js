@@ -1,14 +1,38 @@
 import React, { useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
-
-const SignUpScreen = () => {
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, ToastAndroid } from 'react-native';
+import {URL} from "../component/constant" 
+const SignUpScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const handleSignUp = () => {
-        // handle sign-up logic here
+        if (password === confirmPassword) {
+            fetch(`${URL}/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "Success") {
+                        navigation.navigate('Input', { username: username });
+                    }
+                    console.log(data);
+                })
+                .catch(error => {
+                    ToastAndroid.show('User already exists', ToastAndroid.SHORT, ToastAndroid.RED);
+                    console.error(error);
+                });
+        } else {
+            ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT, ToastAndroid.RED);
+        }
     }
     const callIsLogin = () => {
         navigation.navigate('Login');

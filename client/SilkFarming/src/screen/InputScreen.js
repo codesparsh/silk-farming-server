@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {URL} from "../component/constant" 
 const SilkwormForm = () => {
-  const [farmerName, setFarmerName] = useState('');
+  
   const [silkwormSpecies, setSilkwormSpecies] = useState('');
   const [numTiers, setNumTiers] = useState('');
   const [shedDimensions, setShedDimensions] = useState('');
   const [state, setState] = useState('');
   const handleCancel = () => {
-    setFarmerName('');
+    
     setSilkwormSpecies('');
     setNumTiers('');
     setShedDimensions('');
     setState('');
+    navigation.navigate('Home', {user: data.user});
   };
-
+  const route = useRoute();
+  const navigation= useNavigation();
   const handleSubmit = () => {
-    fetch('http://localhost:3000/user/update', {
+    
+    fetch(`${URL}/user/update`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        username: farmerName,
+        username: route.params.username,
         tiers: numTiers,
         species: silkwormSpecies,
         shedDimensions: shedDimensions,
@@ -32,31 +36,18 @@ const SilkwormForm = () => {
     })
       .then(response => response.json())
       .then(data => {
+        if (data.status === "Success") {
+          navigation.navigate('Home', {user: data.user});
+        }
         console.log(data);
       })
       .catch(error => {
         console.error(error);
       });
-    console.log({
-      farmerName,
-      silkwormSpecies,
-      numTiers,
-      shedDimensions,
-      state
-    });
-    handleCancel();
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your name"
-        value={farmerName}
-        onChangeText={(text) => setFarmerName(text)}
-      />
-
       <Text style={styles.label}>Silkworm species</Text>
       <Picker
         style={styles.picker}
@@ -142,10 +133,12 @@ const SilkwormForm = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex:1,
+    padding: 40,
     backgroundColor: '#EFEFF4',
     borderRadius: 10,
-    margin: 10
+    margin: 13,
+    justifyContent: 'center',
   },
   label: {
     fontSize: 16,

@@ -1,15 +1,37 @@
 import React, { useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
+import {URL} from "../component/constant" 
 import SignUpScreen from './SignUpScreen';
 
-const LoginScreen = ({navigation}) => {
-    
+const LoginScreen = ({ navigation }) => {
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isSignUp, setIsSignUP] = useState(false);
+    
     const handleLogin = () => {
-        // handle login logic here
+        fetch(`${URL}/signin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "Success") {
+                    navigation.navigate('Home');
+                }
+                console.log(data);
+            })
+            .catch(error => {
+                ToastAndroid.show('Wrong Password', ToastAndroid.SHORT, ToastAndroid.RED);
+                console.error(error);
+            });
     }
     const callIsSignUp = () => {
         navigation.navigate('SignUp');
