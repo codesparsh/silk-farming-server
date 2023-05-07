@@ -1,125 +1,171 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {URL} from "../component/constant" 
 const HomePage = () => {
+  const [loading, setLoading] = useState(true);
+  const [temp, setTemp] = useState('NA');
+  const [humidity, setHumidity] = useState('NA');
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { user } = route.params
+  useEffect(() => {
+    if (user !== undefined && user !== null) {
+      setLoading(false)
+    }
+  }, [user]);
+
+  const formatDate = (isoDateString) => {
+    const date = new Date(isoDateString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const amOrPm = hours >= 12 ? "Pm" : "Am";
+    const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "short" });
+    const year = date.getFullYear();
+
+    return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm} on ${day} ${month} ${year}`;
+  }
+
+  const callInputScreen = () => {
+    navigation.navigate('Input', { username: user.username })
+  }
+  const callTempAndHumidity = () => {
+    fetch(`${URL}/list/feeds`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: user.username
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if(data.feeds.temperature!= null) setTemp(data.feeds.temperature)
+        if(data.feeds.humidity!= null) setHumidity(data.feeds.humidity)
+        console.log(data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.editButton}>
-          <MaterialCommunityIcons
-            name="pencil"
-            size={14}
-            color="#2B2D42"
-          />
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
-        <View style={styles.content}>
-          <View style={styles.contentItem}>
+
+    loading ?
+      <ActivityIndicator size="large" color="#0000ff" />
+      :
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.editButton} onPress={callInputScreen}>
             <MaterialCommunityIcons
-              name="account"
-              size={24}
-              color="#fff"
+              name="pencil"
+              size={14}
+              color="#2B2D42"
             />
-            <Text style={styles.contentText}>
-              Owner: <Text style={styles.contentTextBold}>Kartikey</Text>
-            </Text>
-          </View>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="layers"
-              size={24}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              Number of Tiers: <Text style={styles.contentTextBold}>3</Text>
-            </Text>
-          </View>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="ruler"
-              size={24}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              Dimensions of Shed: <Text style={styles.contentTextBold}>10 x 12 ft</Text>
-            </Text>
-          </View>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={24}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              State: <Text style={styles.contentTextBold}>Delhi</Text>
-            </Text>
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <View style={styles.content}>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="account"
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                Owner: <Text style={styles.contentTextBold}>{user.username}</Text>
+              </Text>
+            </View>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="layers"
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                Number of Tiers: <Text style={styles.contentTextBold}>{user.tiers}</Text>
+              </Text>
+            </View>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="ruler"
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                Dimensions of Shed: <Text style={styles.contentTextBold}>{user.shedDimensions} ft</Text>
+              </Text>
+            </View>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="map-marker"
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                State: <Text style={styles.contentTextBold}>{user.state}</Text>
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.temperatureButton}>
-          <Text style={styles.temperatureButtonText}>Check the Temperature</Text>
-        </TouchableOpacity>
-        <View style={styles.content}>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="thermometer"
-              size={18}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              Current Temperature is : <Text style={styles.contentTextBold}>28°C</Text>
-            </Text>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.temperatureButton} onPress={callTempAndHumidity}>
+            <Text style={styles.temperatureButtonText}>Tap to check the current temprature and humidity</Text>
+          </TouchableOpacity>
+          <View style={styles.content}>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="thermometer"
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                <Text style={styles.contentTextBold}>{temp}°C last recorded on</Text>
+              </Text>
+            </View>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="water"
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                <Text style={styles.contentTextBold}>{humidity}% last recorded on</Text>
+              </Text>
+            </View>
           </View>
-
         </View>
-      </View>
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.temperatureButton}>
-          <Text style={styles.temperatureButtonText}>Check the Humidity</Text>
-        </TouchableOpacity>
-        <View style={styles.content}>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="water"
-              size={18}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              Current humidity is <Text style={styles.contentTextBold}>50%</Text>
-            </Text>
+        
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.temperatureButton}>
+            <Text style={styles.temperatureButtonText}>View Sanitaion Logs</Text>
+          </TouchableOpacity>
+          <View style={styles.content}>
+            <View style={styles.contentItem}>
+              <MaterialCommunityIcons
+                name="calendar"
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.contentText}>
+                Last sanitation was done on<Text style={styles.contentTextBold}> 4 Apr 20122</Text>
+              </Text>
+            </View>
+
           </View>
-
         </View>
+
+
       </View>
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.temperatureButton}>
-          <Text style={styles.temperatureButtonText}>View Sanitaion Logs</Text>
-        </TouchableOpacity>
-        <View style={styles.content}>
-          <View style={styles.contentItem}>
-            <MaterialCommunityIcons
-              name="calendar"
-              size={18}
-              color="#fff"
-            />
-            <Text style={styles.contentText}>
-              Last sanitation was done on<Text style={styles.contentTextBold}> 4 Apr 20122</Text>
-            </Text>
-          </View>
-
-        </View>
-      </View>
-
-
-    </View>
 
   );
 };
