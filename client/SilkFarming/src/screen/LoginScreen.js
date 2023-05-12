@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
 import { URL } from "../component/constant"
 import SignUpScreen from './SignUpScreen';
+import {LoginContext} from '../context/LoginInfoProvider'
+
 // import app from '../../firbaseConfig'
 // import messaging from '@react-native-firebase/messaging';
 
 
 const LoginScreen = ({ navigation }) => {
-    
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    const { userInfo, updateUserInfo } = useContext(LoginContext);
     const handleLogin = () => {
         fetch(`${URL}/signin`, {
             method: 'POST',
@@ -28,6 +30,7 @@ const LoginScreen = ({ navigation }) => {
             .then(data => {
                 // callToken
                 if (data.status === "Success") {
+                    updateUserInfo(data.user)
                     navigation.navigate('Home', { user: data.user });
                 }
                 console.log(data);
@@ -37,13 +40,16 @@ const LoginScreen = ({ navigation }) => {
                 console.error(error);
             });
     }
+
+    
+    
     const callIsSignUp = () => {
         navigation.navigate('SignUp');
     }
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="log-in" size={32} color="#0066CC" />
+                <Ionicons name="log-in-outline" size={32} color="#0066CC" />
                 <Text style={styles.title}>Login</Text>
             </View>
             <View style={styles.form}>

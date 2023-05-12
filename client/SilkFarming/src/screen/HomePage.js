@@ -8,21 +8,17 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import {URL} from "../component/constant" 
+import { URL } from "../component/constant"
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
-  const [temp, setTemp] = useState('NA');
+  const [temp, setTemp] = useState('28');
+  const [tempTime, setTempTime] = useState('NA');
   const [humidity, setHumidity] = useState('NA');
   const [sanitation, setSanitation] = useState('NA');
   const route = useRoute();
   const navigation = useNavigation();
   const { user } = route.params
-  useEffect(() => {
-    if (user !== undefined && user !== null) {
-      setLoading(false)
-    }
-    setSanitation(user.sanitation)
-  }, [user]);
+
 
   const formatDate = (isoDateString) => {
     const date = new Date(isoDateString);
@@ -41,7 +37,6 @@ const HomePage = () => {
     navigation.navigate('Input', { username: user.username })
   }
   const callUpdateSanitation = () => {
-    console.log("in")
     const currentDate = new Date();
 
     fetch(`${URL}/user/update`, {
@@ -56,7 +51,7 @@ const HomePage = () => {
     })
       .then(response => response.json())
       .then(data => {
-        setSanitation(formatDate(currentDate.toISOString()))
+        setSanitation(data.user.sanitation)
         console.log(data);
       })
       .catch(error => {
@@ -75,14 +70,22 @@ const HomePage = () => {
     })
       .then(response => response.json())
       .then(data => {
-        if(data.feeds[0].temperature!= null) setTemp(data.feeds[0].temperature)
-        if(data.feeds[0].humidity!= null) setHumidity(data.feeds[0].humidity)
+        if (data.data.temperature != null) setTemp(data.data.temperature)
+        if (data.data.humidity != null) setHumidity(data.data.humidity)
+        setTempTime(formatDate(data.data.created_at))
         console.log(data);
       })
       .catch(error => {
         console.error(error);
       });
   }
+  useEffect(() => {
+    if (user !== undefined && user !== null) {
+      setLoading(false)
+    }
+    setSanitation(user.sanitation)
+    callTempAndHumidity
+  });
   return (
 
     loading ?
@@ -102,7 +105,7 @@ const HomePage = () => {
             <View style={styles.contentItem}>
               <MaterialCommunityIcons
                 name="account"
-                size={24}
+                size={18}
                 color="#fff"
               />
               <Text style={styles.contentText}>
@@ -112,7 +115,7 @@ const HomePage = () => {
             <View style={styles.contentItem}>
               <MaterialCommunityIcons
                 name="layers"
-                size={24}
+                size={18}
                 color="#fff"
               />
               <Text style={styles.contentText}>
@@ -122,17 +125,17 @@ const HomePage = () => {
             <View style={styles.contentItem}>
               <MaterialCommunityIcons
                 name="ruler"
-                size={24}
+                size={18}
                 color="#fff"
               />
               <Text style={styles.contentText}>
-                Dimensions of Shed: <Text style={styles.contentTextBold}>{user.shedDimensions} ft</Text>
+                Dimensions of Shed: <Text style={styles.contentTextBold}>{user.shedDimensions} acre</Text>
               </Text>
             </View>
             <View style={styles.contentItem}>
               <MaterialCommunityIcons
                 name="map-marker"
-                size={24}
+                size={18}
                 color="#fff"
               />
               <Text style={styles.contentText}>
@@ -147,29 +150,37 @@ const HomePage = () => {
             <Text style={styles.temperatureButtonText}>Tap to check the current temprature and humidity</Text>
           </TouchableOpacity>
           <View style={styles.content}>
-            <View style={styles.contentItem}>
-              <MaterialCommunityIcons
-                name="thermometer"
-                size={18}
-                color="#fff"
-              />
-              <Text style={styles.contentText}>
-                <Text style={styles.contentTextBold}>{temp}°C last recorded on</Text>
-              </Text>
+            <View style={styles.secondCard}>
+              <View style={styles.iconTextWrapper}>
+                <MaterialCommunityIcons
+                  name="thermometer"
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.contentText}>
+                  <Text style={styles.contentTextBold}>{temp}°C</Text>
+                </Text>
+              </View>
+              <View style={styles.iconTextWrapper}>
+                <MaterialCommunityIcons
+                  name="water"
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.contentText}>
+                  <Text style={styles.contentTextBold}>{humidity}%</Text>
+                </Text>
+              </View>
             </View>
             <View style={styles.contentItem}>
-              <MaterialCommunityIcons
-                name="water"
-                size={18}
-                color="#fff"
-              />
-              <Text style={styles.contentText}>
-                <Text style={styles.contentTextBold}>{humidity}% last recorded on</Text>
+
+              <Text style={styles.dateText}>
+                <Text style={styles.contentTextBold}>last recorded on {tempTime}</Text>
               </Text>
             </View>
           </View>
         </View>
-        
+
         <View style={styles.card}>
           <TouchableOpacity style={styles.temperatureButton}>
             <Text style={styles.temperatureButtonText} onPress={callUpdateSanitation}>Add Sanitaion Logs</Text>
@@ -279,16 +290,33 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     marginTop: 4,
+    marginBottom: 5
   },
   temperatureButtonText: {
     color: '#2B2D42',
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 2,
-    
+    textAlign: 'center'
   },
+  dateText: {
+    color: '#fff',
+    fontSize: 12,
+    position: 'absolute',
+    bottom: -35,
+    right: -10,
+    margin: 10,
+  },
+  secondCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  iconTextWrapper: {
+    flexDirection: 'row',
+    marginBottom: 5,
+    marginTop: 4,
+  }
 });
-
-
 
 export default HomePage;

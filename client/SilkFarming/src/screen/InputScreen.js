@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -9,13 +9,14 @@ const SilkwormForm = () => {
   const [numTiers, setNumTiers] = useState('');
   const [shedDimensions, setShedDimensions] = useState('');
   const [state, setState] = useState('');
+  const { userInfo, updateUserInfo } = useContext(LoginContext);
   const handleCancel = () => {
     
     setSilkwormSpecies('');
     setNumTiers('');
     setShedDimensions('');
     setState('');
-    navigation.navigate('Home', {user: data.user});
+    navigation.navigate('Home', {user: userInfo});
   };
   const route = useRoute();
   const navigation= useNavigation();
