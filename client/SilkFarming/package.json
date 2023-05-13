@@ -11,8 +11,11 @@
   "dependencies": {
     "@expo/config-plugins": "~6.0.0",
     "@expo/webpack-config": "^18.0.1",
-    "@react-native-firebase/app": "^17.4.3",
-    "@react-native-firebase/messaging": "^17.4.3",
+    "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@react-native-firebase/app": "^17.5.0",
+    "@react-native-firebase/messaging": "^17.5.0",
     "@react-native-picker/picker": "2.4.8",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/stack": "^6.3.16",

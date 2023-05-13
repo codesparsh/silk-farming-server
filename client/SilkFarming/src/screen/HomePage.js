@@ -10,8 +10,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { URL } from "../component/constant"
 const HomePage = () => {
-  const [loading, setLoading] = useState(true);
-  const [temp, setTemp] = useState('28');
+  const [loading, setLoading] = useState(false);
+  const [temp, setTemp] = useState('NA');
   const [tempTime, setTempTime] = useState('NA');
   const [humidity, setHumidity] = useState('NA');
   const [sanitation, setSanitation] = useState('NA');
@@ -52,12 +52,17 @@ const HomePage = () => {
       .then(response => response.json())
       .then(data => {
         setSanitation(data.user.sanitation)
-        console.log(data);
+        console.log(data.user.sanitation);
       })
       .catch(error => {
         console.error(error);
       });
   }
+
+  const Logout = () => {
+
+  }
+
   const callTempAndHumidity = () => {
     fetch(`${URL}/list/feeds`, {
       method: 'POST',
@@ -84,8 +89,8 @@ const HomePage = () => {
       setLoading(false)
     }
     setSanitation(user.sanitation)
-    callTempAndHumidity
-  });
+    callTempAndHumidity()
+  },[]);
   return (
 
     loading ?
@@ -182,8 +187,8 @@ const HomePage = () => {
         </View>
 
         <View style={styles.card}>
-          <TouchableOpacity style={styles.temperatureButton}>
-            <Text style={styles.temperatureButtonText} onPress={callUpdateSanitation}>Add Sanitaion Logs</Text>
+          <TouchableOpacity style={styles.temperatureButton} onPress={callUpdateSanitation}>
+            <Text style={styles.temperatureButtonText} >Add Sanitaion Logs</Text>
           </TouchableOpacity>
           <View style={styles.content}>
             <View style={styles.contentItem}>
@@ -196,7 +201,6 @@ const HomePage = () => {
                 Last sanitation was done on<Text style={styles.contentTextBold}> {sanitation}</Text>
               </Text>
             </View>
-
           </View>
         </View>
 

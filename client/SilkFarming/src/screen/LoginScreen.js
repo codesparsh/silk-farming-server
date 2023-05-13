@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, ToastAndroid } from 'react-native';
 import { URL } from "../component/constant"
 import SignUpScreen from './SignUpScreen';
 import {LoginContext} from '../context/LoginInfoProvider'
