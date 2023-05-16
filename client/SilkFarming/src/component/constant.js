@@ -1,1 +1,0 @@
-export const URL = "https://5364-2405-201-d008-693a-f8d1-6081-ccde-e77a.in.ngrok.io"
