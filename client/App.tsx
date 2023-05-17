@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import LoginInfoProvider from './src/context/LoginInfoProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,10 +8,34 @@ import HomePage from './src/screen/HomePage';
 import InputScreen from './src/screen/InputScreen';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import SignOutButton from './src/component/SignOutButton'
+import messaging from '@react-native-firebase/messaging';
 const Stack = createStackNavigator();
 
 export default function App() {
+  const requestUserPermission = async () => {
+    const authStatus = await messaging().requestPermission();
+    console.log('Authorization status:', authStatus);
+    return (
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL
+    );
+  };
+  useEffect(() => {
+    if (requestUserPermission()) {
+      messaging()
+        .getToken()
+        .then((fcmToken) => {
+          console.log('FCM Token', fcmToken);
+        })
+    } else {
+      console.log('Not authorisation status');
+    }
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log('Notification data:', remoteMessage.data);
+    });
+    return unsubscribe;
+  }, [])
   return (
     <LoginInfoProvider>
       <NavigationContainer>
@@ -34,19 +58,7 @@ export default function App() {
                   fontWeight: 'bold',
                 },
                 // headerTitleAlign: 'center',
-                headerRight: () => (
-                  <TouchableOpacity style={{
-                    marginRight: 16,
-                    backgroundColor: '#F0A202',
-                    borderRadius: 30,
-                    width: 30,
-                    height: 30,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                    <Ionicons name="log-out-outline" size={16} color="#2B2D42" />
-                  </TouchableOpacity>
-                )
+                headerRight: () => <SignOutButton />
               }
             }
           />

@@ -3,13 +3,24 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, ToastAndroid } from 'react-native';
 import { URL } from "../component/constant"
 import SignUpScreen from './SignUpScreen';
-import {LoginContext} from '../context/LoginInfoProvider'
-
+import { LoginContext } from '../context/LoginInfoProvider'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const LoginScreen = ({ navigation }) => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { userInfo, updateUserInfo } = useContext(LoginContext);
+    // useEffect(() => {
+    //     checkLoggedIn();
+    // }, []);
+
+    // const checkLoggedIn = async () => {
+    //     const user = await AsyncStorage.getItem('user');
+    //     if (user) {
+    //         navigation.navigate('Home', { user: JSON.parse(user) });
+    //     }
+    // };
+
     const handleLogin = () => {
         fetch(`${URL}/signin`, {
             method: 'POST',
@@ -27,6 +38,7 @@ const LoginScreen = ({ navigation }) => {
                 // callToken
                 if (data.status === "Success") {
                     updateUserInfo(data.user)
+                    // AsyncStorage.setItem('user', JSON.stringify(data.user));
                     navigation.navigate('Home', { user: data.user });
                 }
                 console.log(data);
@@ -37,8 +49,8 @@ const LoginScreen = ({ navigation }) => {
             });
     }
 
-    
-    
+
+
     const callIsSignUp = () => {
         navigation.navigate('SignUp');
     }

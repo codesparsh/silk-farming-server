@@ -12,8 +12,8 @@ import { URL } from "../component/constant"
 const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState('NA');
-  const [tempTime, setTempTime] = useState('NA');
-  const [humidity, setHumidity] = useState('NA');
+  const [tempTime, setTempTime] = useState('30.20');
+  const [humidity, setHumidity] = useState('66.80');
   const [sanitation, setSanitation] = useState('NA');
   const route = useRoute();
   const navigation = useNavigation();
@@ -59,10 +59,6 @@ const HomePage = () => {
       });
   }
 
-  const Logout = () => {
-
-  }
-
   const callTempAndHumidity = () => {
     fetch(`${URL}/list/feeds`, {
       method: 'POST',
@@ -81,7 +77,7 @@ const HomePage = () => {
         console.log(data);
       })
       .catch(error => {
-        console.error(error);
+        console.error(data.data.temperature);
       });
   }
   useEffect(() => {
