@@ -17,7 +17,7 @@ const SCOPES = [MESSAGING_SCOPE];
 
 var admin = require("firebase-admin");
 
-var serviceAccount = require("../silk-farming-firebase-adminsdk-sqqb5-028b037e7e.json");
+var serviceAccount = require("../service-account.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -283,7 +283,7 @@ const sendNotification  = async (msg, entry) => {
         });
     
         request.write(JSON.stringify({message: {
-            token: token, data: {msg: msg, entry:entry}
+            token: token, data: {msg: msg, entry:entry}, notification: {title: msg, body: entry}
         }}));
         request.end();
       });

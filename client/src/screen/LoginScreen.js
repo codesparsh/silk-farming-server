@@ -5,21 +5,68 @@ import { URL } from "../component/constant"
 import SignUpScreen from './SignUpScreen';
 import { LoginContext } from '../context/LoginInfoProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
+import { Alert } from 'react-native';
 const LoginScreen = ({ navigation }) => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { userInfo, updateUserInfo } = useContext(LoginContext);
-    // useEffect(() => {
-    //     checkLoggedIn();
-    // }, []);
+    useEffect(() => {
+        const unsubscribe = messaging().onMessage(async remoteMessage => {
+            console.log('Message handled in the foreground!', remoteMessage);
+          Alert.alert('A new FCM message arrived in foreground!', JSON.stringify(remoteMessage));
+        });
+    
+        return unsubscribe;
+      }, []);
+    const callRegistration = () => {
+        const requestUserPermission = async () => {
+            const authStatus = await messaging().requestPermission();
+            console.log('Authorization status:', authStatus);
+            return (
+                authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+                authStatus === messaging.AuthorizationStatus.PROVISIONAL
+            );
+        };
+        const setupMessaging = async () => {
+            const permissionGranted = await requestUserPermission();
 
-    // const checkLoggedIn = async () => {
-    //     const user = await AsyncStorage.getItem('user');
-    //     if (user) {
-    //         navigation.navigate('Home', { user: JSON.parse(user) });
-    //     }
-    // };
+            if (permissionGranted) {
+                messaging()
+                    .getToken()
+                    .then((fcmToken) => {
+
+                        fetch(`${URL}/register`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                registrationToken: fcmToken
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.error(error);
+                            });
+                        console.log('FCM Token', fcmToken);
+
+                    })
+                    .catch((error) => {
+                        console.log('Failed to get FCM token:', error);
+                    });
+            } else {
+                console.log('Authorization status not granted');
+            }
+        };
+        setupMessaging();
+
+        
+    }
 
     const handleLogin = () => {
         fetch(`${URL}/signin`, {
@@ -38,6 +85,7 @@ const LoginScreen = ({ navigation }) => {
                 // callToken
                 if (data.status === "Success") {
                     updateUserInfo(data.user)
+                    callRegistration()
                     // AsyncStorage.setItem('user', JSON.stringify(data.user));
                     navigation.navigate('Home', { user: data.user });
                 }

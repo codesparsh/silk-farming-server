@@ -12,8 +12,8 @@ import { URL } from "../component/constant"
 const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState('NA');
-  const [tempTime, setTempTime] = useState('30.20');
-  const [humidity, setHumidity] = useState('66.80');
+  const [tempTime, setTempTime] = useState('NA');
+  const [humidity, setHumidity] = useState('NA');
   const [sanitation, setSanitation] = useState('NA');
   const route = useRoute();
   const navigation = useNavigation();
@@ -130,7 +130,7 @@ const HomePage = () => {
                 color="#fff"
               />
               <Text style={styles.contentText}>
-                Dimensions of Shed: <Text style={styles.contentTextBold}>{user.shedDimensions} acre</Text>
+                Dimensions of field: <Text style={styles.contentTextBold}>{user.shedDimensions} acre</Text>
               </Text>
             </View>
             <View style={styles.contentItem}>

@@ -9,40 +9,48 @@ import InputScreen from './src/screen/InputScreen';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SignOutButton from './src/component/SignOutButton'
-import { View } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import { View, Alert } from 'react-native';
+// import messaging from '@react-native-firebase/messaging';
 const Stack = createStackNavigator();
 
 export default function App() {
-  // const navigation = useNavigation();
-  const requestUserPermission = async () => {
-    const authStatus = await messaging().requestPermission();
-    console.log('Authorization status:', authStatus);
-    if (
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL
-    )
-      messaging()
-        .getToken()
-        .then((fcmToken) => {
-          console.log('FCM Token', fcmToken);
-        })
-  };
-  useEffect(() => {
-    // if (requestUserPermission()) {
-    //   messaging()
-    //     .getToken()
-    //     .then((fcmToken) => {
-    //       console.log('FCM Token', fcmToken);
-    //     })
-    // } else {
-    //   console.log('Not authorisation status');
-    // }
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log('Notification data:', remoteMessage.data);
-    });
-    return unsubscribe;
-  }, [])
+  // useEffect(() => {
+  //   const requestUserPermission = async () => {
+  //     const authStatus = await messaging().requestPermission();
+  //     console.log('Authorization status:', authStatus);
+  //     return (
+  //       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+  //       authStatus === messaging.AuthorizationStatus.PROVISIONAL
+  //     );
+  //   };
+
+  //   const setupMessaging = async () => {
+  //     const permissionGranted = await requestUserPermission();
+
+  //     if (permissionGranted) {
+  //       messaging()
+  //         .getToken()
+  //         .then((fcmToken) => {
+  //           console.log('FCM Token', fcmToken);
+  //         })
+  //         .catch((error) => {
+  //           console.log('Failed to get FCM token:', error);
+  //         });
+  //     } else {
+  //       console.log('Authorization status not granted');
+  //     }
+  //   };
+
+  //   setupMessaging();
+
+  //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+  //     console.log('Notification data:', remoteMessage.data);
+  //   });
+
+    
+  // }, []);
+  
+
   return (
     <LoginInfoProvider>
       <NavigationContainer>
