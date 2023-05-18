@@ -1,10 +1,28 @@
 let cron = require("node-cron")
 let http = require("http")
+let https = require("https")
 var redisClient = require("../redisClient")
 const { parse } = require("path")
-const { admin } = require('../firebase-config')
+const { google } = require('googleapis');
+// const { admin } = require('../firebase-config')
 const USER_KEY = "user"
 const FARM_KEY = "farm"
+
+const PROJECT_ID = 'silk-farming';
+const HOST = 'fcm.googleapis.com';
+const PATH = '/v1/projects/' + PROJECT_ID + '/messages:send';
+const MESSAGING_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
+const SCOPES = [MESSAGING_SCOPE];
+
+
+var admin = require("firebase-admin");
+
+var serviceAccount = require("../silk-farming-firebase-adminsdk-sqqb5-028b037e7e.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 
 const notification_options = {
     priority: "high",
@@ -217,34 +235,79 @@ module.exports.registration = async (req, res) => {
     }
 }
 
-function sendTemperatureNotification(registrationToken) {
-    const message = {
-        data: {
-            score: '850',
-            time: '2:45'
-        },
-        token: registrationToken
-    };
+function getAccessToken() {
+    return new Promise(function(resolve, reject) {
+      const jwtClient = new google.auth.JWT(
+        serviceAccount.client_email,
+        null,
+        serviceAccount.private_key,
+        SCOPES,
+        null
+      );
+      jwtClient.authorize(function(err, tokens) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(tokens.access_token);
+      });
+    });
+  }
 
-    getMessaging().send(message)
-        .then((response) => {
-            console.log('Successfully sent message:', response);
-        })
-        .catch((error) => {
-            console.log('Error sending message:', error);
+const sendNotification  = async (msg, entry) => {
+    console.log("Sending notification -------")
+ await redisClient.get("registrationToken").then(async (token) => {
+    getAccessToken().then(function(accessToken) {
+        const options = {
+          hostname: HOST,
+          path: PATH,
+          method: 'POST',
+          // [START use_access_token]
+          headers: {
+            'Authorization': 'Bearer ' + accessToken
+          }
+          // [END use_access_token]
+        };
+    
+        const request = https.request(options, function(resp) {
+          resp.setEncoding('utf8');
+          resp.on('data', function(data) {
+            console.log('Message sent to Firebase for delivery, response:');
+            console.log(data);
+          });
         });
+    
+        request.on('error', function(err) {
+          console.log('Unable to send message to Firebase');
+          console.log(err);
+        });
+    
+        request.write(JSON.stringify({message: {
+            token: token, data: {msg: msg, entry:entry}
+        }}));
+        request.end();
+      });
+    }).catch(() => {
+        console.log("Failed to send notification")
+    })
+
 }
 
 
-cron.schedule("*/10 * * * * *", () => {
+cron.schedule("*/5 * * * * *", () => {
     console.log("Cron Job runing every 10 second")
+    getAccessToken().then((token) => {
+console.log("access token ", token)
+    }).catch((error) => {
+console.log("access token error ", error)
 
-    http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, (response) => {
+    })
+    http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, async (response) => {
         let data = '';
         response.on('data', (chunk) => {
             data += chunk;
         });
-        response.on('end', () => {
+        response.on('end', async () => {
             let parsedData = JSON.parse(data);
             let channelId = parsedData.channel.id
             let key = FARM_KEY + ":" + channelId
@@ -256,11 +319,16 @@ cron.schedule("*/10 * * * * *", () => {
                 humidity: feed.field2
             }
 
-            if (entry.temperature > 0 && entry.temperature < 0) {
-
+            if (entry.temperature >= 29) {
+                await sendNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
             }
 
-            if (entry.humidity > 0  && entry.humidity < 0) {
+            if (entry.temperature <= 23) {
+                await sendNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
+            }
+
+            if (entry.humidity <= 70) {
+                await sendNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
 
             }
 
@@ -272,7 +340,6 @@ cron.schedule("*/10 * * * * *", () => {
         })
     })
 })
-
 
             // let channelId = parsedData.channel.id
                     // let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
