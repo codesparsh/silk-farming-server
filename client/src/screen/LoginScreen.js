@@ -7,6 +7,7 @@ import { LoginContext } from '../context/LoginInfoProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
+import ForegroundNotification from '../component/ForegroundNotification';
 const LoginScreen = ({ navigation }) => {
 
     const [username, setUsername] = useState('');
@@ -15,7 +16,18 @@ const LoginScreen = ({ navigation }) => {
     useEffect(() => {
         const unsubscribe = messaging().onMessage(async remoteMessage => {
             console.log('Message handled in the foreground!', remoteMessage);
-          Alert.alert('A new FCM message arrived in foreground!', JSON.stringify(remoteMessage));
+            const { title, body } = remoteMessage.notification;
+            Alert.alert(
+                title,
+                body,
+                [
+                  {
+                    text: 'Dismiss',
+                    onPress: () => console.log('Notification dismissed'),
+                  },
+                ],
+                // { customComponent: <ForegroundNotification title={remoteMessage.notification.title} message={remoteMessage.notification.body} /> }
+              );
         });
     
         return unsubscribe;

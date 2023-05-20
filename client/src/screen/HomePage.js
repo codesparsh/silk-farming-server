@@ -32,7 +32,9 @@ const HomePage = () => {
 
     return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm}, ${day} ${month} ${year}`;
   }
-
+  const callNewScreen = () => {
+    navigation.navigate('Graph')
+  }
   const callInputScreen = () => {
     navigation.navigate('Input', { username: user.username })
   }
@@ -147,7 +149,7 @@ const HomePage = () => {
         </View>
 
         <View style={styles.card}>
-          <TouchableOpacity style={styles.temperatureButton} onPress={callTempAndHumidity}>
+          <TouchableOpacity style={styles.temperatureButton} onPress={callNewScreen}>
             <Text style={styles.temperatureButtonText}>Tap to check the current temprature and humidity</Text>
           </TouchableOpacity>
           <View style={styles.content}>
