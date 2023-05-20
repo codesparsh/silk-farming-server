@@ -240,45 +240,6 @@ function getAccessToken() {
     });
   }
 
-const sendNotification  = async (msg, entry) => {
-    console.log("Sending notification -------")
- await redisClient.get("registrationToken").then(async (token) => {
-    getAccessToken().then(function(accessToken) {
-        const options = {
-          hostname: HOST,
-          path: PATH,
-          method: 'POST',
-          // [START use_access_token]
-          headers: {
-            'Authorization': 'Bearer ' + accessToken
-          }
-          // [END use_access_token]
-        };
-    
-        const request = https.request(options, function(resp) {
-          resp.setEncoding('utf8');
-          resp.on('data', function(data) {
-            console.log('Message sent to Firebase for delivery, response:');
-            console.log(data);
-          });
-        });
-    
-        request.on('error', function(err) {
-          console.log('Unable to send message to Firebase');
-          console.log(err);
-        });
-    
-        request.write(JSON.stringify({message: {
-            token: token, data: {msg: msg, entry:entry}, notification: {title: msg, body: entry}
-        }}));
-        request.end();
-      });
-    }).catch(() => {
-        console.log("Failed to send notification")
-    })
-
-}
-
 
 cron.schedule("*/5 * * * * *", () => {
     console.log("Cron Job runing every 10 second")
