@@ -41,12 +41,12 @@ const SignUpScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="person-outline" size={24} color="#0066CC" />
+                <Ionicons name="person-outline" size={24} color="#63C132" />
                 <Text style={styles.title}>Create Account</Text>
             </View>
             <View style={styles.form}>
                 <View style={styles.inputContainer}>
-                    <Ionicons name="person-outline" size={18} color="#CCCCCC" />
+                    <Ionicons name="person-outline" size={18} color="#63C132" />
                     <TextInput
                         style={styles.input}
                         placeholder="Username"
@@ -58,7 +58,7 @@ const SignUpScreen = ({ navigation }) => {
                     />
                 </View>
                 <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={18} color="#CCCCCC" />
+                    <Ionicons name="lock-closed-outline" size={18} color="#63C132" />
                     <TextInput
                         style={styles.input}
                         placeholder="Password"
@@ -70,7 +70,7 @@ const SignUpScreen = ({ navigation }) => {
                     />
                 </View>
                 <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={18} color="#CCCCCC" />
+                    <Ionicons name="lock-closed-outline" size={18} color="#63C132" />
                     <TextInput
                         style={styles.input}
                         placeholder="Confirm Password"
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#0066CC',
+        color: '#63C132',
     },
     form: {
         flex: 3,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     button: {
-        backgroundColor: '#0066CC',
+        backgroundColor: '#63C132',
         padding: 10,
         borderRadius: 5,
         marginTop: 20,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
         color: '#333333',
     },
     footerLink: {
-        color: '#0066CC',
+        color: '#63C132',
         fontWeight: 'bold',
     },
 });

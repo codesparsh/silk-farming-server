@@ -17,7 +17,7 @@ const InputScreen = () => {
     setNumTiers('');
     setShedDimensions('');
     setState('');
-    navigation.navigate('Home', {user: userInfo});
+    navigation.navigate('Page');
   };
   const route = useRoute();
   const navigation= useNavigation();
@@ -39,7 +39,14 @@ const InputScreen = () => {
       .then(response => response.json())
       .then(data => {
         if (data.status === "Success") {
-          navigation.navigate('Home', {user: data.user});
+          updateUserInfo({
+            username: route.params.username,
+            tiers: numTiers,
+            species: silkwormSpecies,
+            shedDimensions: shedDimensions,
+            state: state,
+          })
+          navigation.navigate('Page');
         }
         console.log(data);
       })

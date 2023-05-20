@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, Text, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {URL} from "../component/constant" 
+import { URL } from "../component/constant"
 import { LoginContext } from '../context/LoginInfoProvider';
 
 const GraphComponent = () => {
@@ -23,9 +23,9 @@ const GraphComponent = () => {
         const day = date.getDate();
         const month = date.toLocaleString("default", { month: "short" });
         const year = date.getFullYear();
-    
+
         return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm}, ${day} ${month} ${year}`;
-      }
+    }
     const callGraphData = () => {
         const channelId = '2058499';
         const apiKey = 'X4IOG5HEJPU1SJ8J';
@@ -70,44 +70,38 @@ const GraphComponent = () => {
     };
     const callTempAndHumidity = () => {
         fetch(`${URL}/list/feeds`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: userInfo.username
-          })
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: userInfo.username
+            })
         })
-          .then(response => response.json())
-          .then(data => {
-            console.log(data, "dataa");
-            if (data.data.temperature != null) setTemp(data.data.temperature)
-            if (data.data.humidity != null) setHumidity(data.data.humidity)
-            setTempTime(formatDate(data.data.created_at))
-            
-            setIsLoading(false);
-            
-          })
-          .catch(error => {
-            console.error(error);
-          });
-      }
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.data.temperature != null) setTemp(data.data.temperature)
+                if (data.data.humidity != null) setHumidity(data.data.humidity)
+                setTempTime(formatDate(data.data.created_at))
+
+                setIsLoading(false);
+
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
     useEffect(() => {
-        console.log(createdAtData, humidityData, temperatureData, "he")
-        console.log( userInfo, "valll")
         callGraphData()
-        console.log( "check")
-        
-        
-        
     }, []);
-    
+
     const onCardClick = () => {
         setIsLoading(true)
         callGraphData()
     }
 
-    console.log(createdAtData, humidityData, temperatureData, "he1")
+
     if (isLoading) {
         return (
             <View style={[styles.container, styles.loadingContainer]}>
@@ -116,7 +110,7 @@ const GraphComponent = () => {
         );
     }
     return (
-        <TouchableOpacity onPress={onCardClick}>
+        <TouchableOpacity onPress={onCardClick} style={{ backgroundColor: '#E1FFE1' }}>
 
             <View style={styles.cardContainer}>
                 {/* <Text style={styles.cardTitle}>Tap refresh</Text> */}
@@ -127,22 +121,23 @@ const GraphComponent = () => {
                 ) : (
                     <View style={styles.chartContainer}>
                         <View style={styles.infoContainer}>
-                            <Icon name="thermometer" type="font-awesome" size={32} color="#FFD700" />
+                        <Text style={styles.headingText}>Temperature</Text>
+                            <Icon name="thermometer" type="font-awesome" size={24} color="#FFD700" />
                             <Text style={styles.infoText}>
-                                <Text style={styles.highlight}>{temp}°C</Text>
+                                <Text style={[styles.highlight, {color: temp>"24" || temp<"29" ? '#9ACD32': '#E05263'  }]}>{parseFloat(temp).toFixed(2)}°C</Text>
                             </Text>
                         </View>
 
                         <LineChart
                             data={{
-                                labels: createdAtData,
+                                labels: createdAtData.slice(0, 7),
                                 datasets: [
                                     {
-                                        data: temperatureData
+                                        data: temperatureData.slice(0, 7)
                                     }
                                 ]
                             }}
-                            width={Dimensions.get("window").width - 32}
+                            width={Dimensions.get("window").width - 36}
                             height={200}
                             yAxisSuffix="°C"
                             yAxisInterval={1}
@@ -160,7 +155,8 @@ const GraphComponent = () => {
                                     r: "6",
                                     strokeWidth: "2",
                                     stroke: "#ffa726"
-                                }
+                                },
+
                             }}
                             bezier
                             style={{
@@ -169,21 +165,22 @@ const GraphComponent = () => {
                             }}
                         />
                         <View style={styles.infoContainer}>
-                            <Icon name="water" type="font-awesome" size={32} color="#00C9FF" />
+                            <Text style={styles.headingText}>Humidity</Text>
+                            <Icon name="water" type="font-awesome" size={24} color="#00C9FF" />
                             <Text style={styles.infoText}>
-                                <Text style={styles.highlight}>{humidity}%</Text>
+                                <Text style={[styles.highlight,{color: humidity>"70" || humidity<"40" ? '#9ACD32': '#E05263'  }]}>{parseFloat(humidity).toFixed(2)}%</Text>
                             </Text>
                         </View>
                         <LineChart
                             data={{
-                                labels: createdAtData,
+                                labels: createdAtData.slice(0, 7),
                                 datasets: [
                                     {
-                                        data: humidityData
+                                        data: humidityData.slice(0, 7)
                                     }
                                 ]
                             }}
-                            width={Dimensions.get("window").width - 32}
+                            width={Dimensions.get("window").width - 36}
                             height={200}
                             yAxisSuffix="%"
                             yAxisInterval={1}
@@ -201,7 +198,8 @@ const GraphComponent = () => {
                                     r: "6",
                                     strokeWidth: "2",
                                     stroke: "#ffa726"
-                                }
+                                },
+
                             }}
                             bezier
                             style={{
@@ -221,7 +219,7 @@ const GraphComponent = () => {
 };
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: '#F2F2F2',
+        backgroundColor: '#F5F5F5',
         borderRadius: 10,
         padding: 16,
         elevation: 3,
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         alignItems: 'center',
-    },
+      },
     cardTitle: {
         fontSize: 12,
         fontWeight: 'bold',
@@ -256,22 +254,30 @@ const styles = StyleSheet.create({
     },
     infoContainer: {
         flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 4,
     },
+
     infoText: {
         marginLeft: 8,
-        fontSize: 32,
+        fontSize: 18,
     },
     highlight: {
-        color: 'green',
-        // fontWeight: 'bold',
+        color: '#9ACD32',
+        fontWeight: 'bold',
+    },
+    headingText: {
+        fontSize: 18,
+        color: '#333333',
+        fontWeight: 'bold',
+        marginHorizontal: 8
     },
     lastRecordedText: {
         textAlign: 'center',
         marginTop: 16,
         fontSize: 14,
         color: '#888888',
+        fontStyle: 'italic',
     },
     dateHighlight: {
         color: '#333333',

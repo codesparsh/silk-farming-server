@@ -2,12 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, ToastAndroid } from 'react-native';
 import { URL } from "../component/constant"
-import SignUpScreen from './SignUpScreen';
 import { LoginContext } from '../context/LoginInfoProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
-import ForegroundNotification from '../component/ForegroundNotification';
 const LoginScreen = ({ navigation }) => {
 
     const [username, setUsername] = useState('');
@@ -81,6 +79,7 @@ const LoginScreen = ({ navigation }) => {
     }
 
     const handleLogin = () => {
+        console.log(URL)
         fetch(`${URL}/signin`, {
             method: 'POST',
             headers: {
@@ -99,7 +98,7 @@ const LoginScreen = ({ navigation }) => {
                     updateUserInfo(data.user)
                     callRegistration()
                     // AsyncStorage.setItem('user', JSON.stringify(data.user));
-                    navigation.navigate('Home', { user: data.user });
+                    navigation.navigate('Page');
                 }
                 console.log(data);
             })
@@ -117,12 +116,12 @@ const LoginScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="log-in-outline" size={32} color="#0066CC" />
+                <Ionicons name="log-in-outline" size={32} color="#63C132" />
                 <Text style={styles.title}>Login</Text>
             </View>
             <View style={styles.form}>
                 <View style={styles.inputContainer}>
-                    <Ionicons name="person-outline" size={18} color="#CCCCCC" />
+                    <Ionicons name="person-outline" size={18} color="#9EE37D" />
                     <TextInput
                         style={styles.input}
                         placeholder="Username"
@@ -134,7 +133,7 @@ const LoginScreen = ({ navigation }) => {
                     />
                 </View>
                 <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={18} color="#CCCCCC" />
+                    <Ionicons name="lock-closed-outline" size={18} color="#9EE37D" />
                     <TextInput
                         style={styles.input}
                         placeholder="Password"
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#0066CC',
+        color: '#63C132',
     },
     form: {
         flex: 3,
@@ -197,7 +196,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     button: {
-        backgroundColor: '#0066CC',
+        backgroundColor: '#63C132',
         padding: 10,
         borderRadius: 5,
         marginTop: 20,
@@ -219,7 +218,7 @@ const styles = StyleSheet.create({
         color: '#333333',
     },
     footerLink: {
-        color: '#0066CC',
+        color: '#63C132',
         fontWeight: 'bold',
     },
 });
