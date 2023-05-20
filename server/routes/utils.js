@@ -136,7 +136,7 @@ module.exports.sendNotification = async (tokens, msg, entry) => {
         });
     
         request.write(JSON.stringify({message: {
-            token: tokens, data: {msg: msg, entry:entry}
+            registration_ids: tokens, data: {msg: msg, entry:entry}, notification: {title: msg, body: entry}
         }}));
         request.end();
     });
