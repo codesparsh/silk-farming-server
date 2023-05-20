@@ -1,6 +1,6 @@
 const { parse } = require("path")
 const { google } = require('googleapis');
-var serviceAccount = require("../silk-farming-firebase-adminsdk-sqqb5-028b037e7e.json");
+var serviceAccount = require("../service-account.json");
 var admin = require("firebase-admin");
 let https = require("https")
 
@@ -14,11 +14,11 @@ const PATH = '/v1/projects/' + PROJECT_ID + '/messages:send';
 const MESSAGING_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
 const SCOPES = [MESSAGING_SCOPE];
 const REGISTER = "register"
+const TIME_DIFF = 1800
 
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+// admin.initializeApp({
+//     credential: admin.credential.cert(serviceAccount)
+// });
   
 module.exports.saveRegistrationToken = async ({registrationToken, lastLoginAt, lastNotifiedAt} = {}) => {
     let setToken = async (tokenDetails) => {
@@ -147,15 +147,25 @@ module.exports.sendThresholdNotification  = async (msg, entry) => {
     await redisClient.get(REGISTER).then(async (tokens) => {
         let parsedTokens = JSON.parse(tokens)
         tokens = parsedTokens != null && parsedTokens != undefined ? parsedTokens : []
-        let registrationTokens = tokens.map(tokenDetails => {
+        let registrationTokens = 
+        tokens
+        .filter(tokenDetails => {
+            return (Date.now() - tokenDetails.lastNotifiedAt > TIME_DIFF)
+        }) 
+        .map(tokenDetails => {
             return tokenDetails.registrationToken
         })
         this.sendNotification(registrationTokens, msg, entry).then(async () => {
             tokens = tokens.map(tokenDetails => {
-                return {
-                    ...tokenDetails,
-                    lastNotifiedAt: Date.now()
+                if (registrationTokens.includes(tokenDetails.registrationToken)) {
+                    return {
+                        ...tokenDetails,
+                        lastNotifiedAt: Date.now()
+                    }                    
+                } else {
+                    return tokenDetails
                 }
+
             })
             await redisClient.set(REGISTER, JSON.stringify(tokens)).then(() => {
                 console.log("Registration Tokens updated")
