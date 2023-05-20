@@ -4,3 +4,5 @@
 /client/SilkFarming/.expo
 /client/SilkFarming/node_modules
 /client/SilkFarming/package-lock.json
+/server/service-account.json
+/server/google-services.json

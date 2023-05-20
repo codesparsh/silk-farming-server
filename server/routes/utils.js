@@ -111,7 +111,7 @@ module.exports.getAccessToken = () => {
     });
 }
 
-module.exports.sendNotification = async (tokens, msg, entry) => {
+module.exports.sendNotification = async (token, msg, entry) => {
     await this.getAccessToken().then(function(accessToken) {
         const options = {
         hostname: HOST,
@@ -136,7 +136,7 @@ module.exports.sendNotification = async (tokens, msg, entry) => {
         });
     
         request.write(JSON.stringify({message: {
-            registration_ids: tokens, data: {msg: msg, entry:entry}, notification: {title: msg, body: entry}
+            token:token, data: {msg: msg, entry:entry}, notification: {title: msg, body: entry}
         }}));
         request.end();
     });
@@ -152,30 +152,29 @@ module.exports.sendThresholdNotification  = async (msg, entry) => {
         .filter(tokenDetails => {
             return (Date.now() - tokenDetails.lastNotifiedAt > TIME_DIFF)
         }) 
-        .map(tokenDetails => {
-            return tokenDetails.registrationToken
+        .map(async tokenDetails => {
+            await this.sendNotification(tokenDetails.registrationToken, msg, entry)
+            return 
         })
-        this.sendNotification(registrationTokens, msg, entry).then(async () => {
-            tokens = tokens.map(tokenDetails => {
-                if (registrationTokens.includes(tokenDetails.registrationToken)) {
-                    return {
-                        ...tokenDetails,
-                        lastNotifiedAt: Date.now()
-                    }                    
-                } else {
-                    return tokenDetails
-                }
 
-            })
-            await redisClient.set(REGISTER, JSON.stringify(tokens)).then(() => {
-                console.log("Registration Tokens updated")
-            }).catch(err => {
-                console.log("Unable to update DB");
-                console.log(err);
-            }) 
-        }).catch(err => {
-            console.log("Notification Error ", err)
+        tokens = tokens.map(tokenDetails => {
+            if (registrationTokens.includes(tokenDetails.registrationToken)) {
+                return {
+                    ...tokenDetails,
+                    lastNotifiedAt: Date.now()
+                }                    
+            } else {
+                return tokenDetails
+            }
+
         })
+        await redisClient.set(REGISTER, JSON.stringify(tokens)).then(() => {
+            console.log("Registration Tokens updated")
+        }).catch(err => {
+            console.log("Unable to update DB");
+            console.log(err);
+        }) 
+
 
     }).catch(() => {
         console.log("Failed to send notification")
