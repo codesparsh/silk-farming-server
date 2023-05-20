@@ -14,7 +14,7 @@ const PATH = '/v1/projects/' + PROJECT_ID + '/messages:send';
 const MESSAGING_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
 const SCOPES = [MESSAGING_SCOPE];
 const REGISTER = "register"
-const TIME_DIFF = 1800
+const TIME_DIFF = 60 * 1000
 
 // admin.initializeApp({
 //     credential: admin.credential.cert(serviceAccount)
@@ -152,11 +152,15 @@ module.exports.sendThresholdNotification  = async (msg, entry) => {
         .filter(tokenDetails => {
             return (Date.now() - tokenDetails.lastNotifiedAt > TIME_DIFF)
         }) 
-        .map(async tokenDetails => {
-            await this.sendNotification(tokenDetails.registrationToken, msg, entry)
-            return 
+        .map(tokenDetails => {
+            return tokenDetails.registrationToken
         })
+        
+        console.log("Tokens  -------", registrationTokens)
 
+        registrationTokens.forEach(async token => {
+            await this.sendNotification(token, msg, entry)
+        })
         tokens = tokens.map(tokenDetails => {
             if (registrationTokens.includes(tokenDetails.registrationToken)) {
                 return {
