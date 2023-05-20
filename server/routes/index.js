@@ -1,18 +1,11 @@
 let cron = require("node-cron")
 let http = require("http")
-let https = require("https")
-var redisClient = require("../redisClient")
-const { parse } = require("path")
-const { google } = require('googleapis');
-// const { admin } = require('../firebase-config')
+let Utility = require('./utils');
+
 const USER_KEY = "user"
 const FARM_KEY = "farm"
 
-const PROJECT_ID = 'silk-farming';
-const HOST = 'fcm.googleapis.com';
-const PATH = '/v1/projects/' + PROJECT_ID + '/messages:send';
-const MESSAGING_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
-const SCOPES = [MESSAGING_SCOPE];
+var redisClient = require("../redisClient")
 
 
 var admin = require("firebase-admin");
@@ -22,12 +15,6 @@ var serviceAccount = require("../service-account.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
-
-
-const notification_options = {
-    priority: "high",
-    timeToLive: 60 * 60 * 24
-};
 
 module.exports.signup = async (req, res) => {
     let username = req.body.username
@@ -212,21 +199,20 @@ module.exports.listFeeds = async (req, res) => {
     })
 }
 
-
 module.exports.registration = async (req, res) => {
     let registrationToken = req.body.registrationToken
     if (registrationToken != null && registrationToken != undefined) {
-        redisClient.set("registrationToken", value = registrationToken).then(() => {
+        if (Utility.saveRegistrationToken({registrationToken: registrationToken, lastLoginAt: Date.now()})) {
             res.send({
                 "status": "Success",
-                "message": "Token Saved"
+                "message": "Token Saved"    
             })
-        }).catch(() => {
+        } else {
             res.send({
                 "status": "Failure",
                 "error": "DB Error"
             })
-        })
+        }
     } else {
         res.send({
             "status": "Failure",
@@ -296,10 +282,10 @@ const sendNotification  = async (msg, entry) => {
 
 cron.schedule("*/5 * * * * *", () => {
     console.log("Cron Job runing every 10 second")
-    getAccessToken().then((token) => {
-console.log("access token ", token)
+    Utility.getAccessToken().then((token) => {
+    console.log("access token ", token)
     }).catch((error) => {
-console.log("access token error ", error)
+    console.log("access token error ", error)
 
     })
     http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, async (response) => {
@@ -320,16 +306,15 @@ console.log("access token error ", error)
             }
 
             if (entry.temperature >= 29) {
-                await sendNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
+                await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
             }
 
             if (entry.temperature <= 23) {
-                await sendNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
+                await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
             }
 
             if (entry.humidity <= 70) {
-                await sendNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
-
+                await Utility.sendThresholdNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
             }
 
             redisClient.set(key, value = JSON.stringify(entry)).then(() => {
@@ -340,48 +325,3 @@ console.log("access token error ", error)
         })
     })
 })
-
-            // let channelId = parsedData.channel.id
-                    // let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
-                    // let temperature = feed.field1
-                    // let humidity = feed.field2
-        
-                    // console.log({ temperature: temperature, humidity: humidity })
-                    // if (humidity > 50) {
-                    //     console.log("Greater humidity")
-                    // }
-                    // if (temperature != null && temperature != undefined) {
-                    //     sendTemperatureNotification(registrationToken);
-                    // }
-        
-                    // let key = FARM_KEY + ":" + channelId
-                    // let feedArr = []
-        
-                    // redisClient.get(key).then(feedArrData => {
-                    //     if (feedArrData != null || feedArrData != undefined) {
-                    //         parsedFeedData = JSON.parse(feedArrData)
-                    //         feedArr = (parsedFeedData.feeds == null || parsedFeedData.feeds == undefined) ? [] : parsedFeedData.feeds
-                    //     } else {
-                    //         feedArr = []
-                    //     }
-        
-        
-                    //     let findEntry = feedArr.find((entry) => entry.entry_id == feed.entry_id)
-                    //     if (findEntry == null || findEntry == undefined) {
-                    //         feedArr.push({
-                    //             "entry_id": feed.entry_id,
-                    //             "created_at": feed.created_at,
-                    //             "temperature": temperature,
-                    //             "humidity": humidity
-                    //         })
-                    //     }
-        
-                    //     redisClient.set(key, value = JSON.stringify({ "feeds": feedArr })).then(() => {
-                    //         console.log("New Feed Update - ID:" + feed.entry_id)
-                    //     }).catch(() => {
-                    //         console.log("Cannot update feed in db - ID:" + feed.entry_id)
-                    //     })
-                    // }).catch(err => {
-                    //     console.log(err)
-                    // })
-        
