@@ -5,5 +5,6 @@ router.post("/signin", controller.signin)
 router.post("/user/update", controller.updateUserDetails)
 router.post("/list/feeds", controller.listFeeds)
 router.post("/register", controller.registration)
+router.get("/", controller.healthCheck)
 
 module.exports = router;

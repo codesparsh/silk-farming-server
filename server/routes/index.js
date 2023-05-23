@@ -15,6 +15,10 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
+module.exports.healthCheck = (req, res) => {
+    res.send("Api Server working .....")
+}
+
 module.exports.signup = async (req, res) => {
     let username = req.body.username
     let password = req.body.password
