@@ -1,5 +1,5 @@
 let cron = require("node-cron")
-let http = require("http")
+let https = require("https")
 let Utility = require('./utils');
 
 const USER_KEY = "user"
@@ -7,13 +7,12 @@ const FARM_KEY = "farm"
 
 var redisClient = require("../redisClient")
 
-
 var admin = require("firebase-admin");
 
 var serviceAccount = require("../service-account.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount)
 });
 
 module.exports.signup = async (req, res) => {
@@ -202,10 +201,10 @@ module.exports.listFeeds = async (req, res) => {
 module.exports.registration = async (req, res) => {
     let registrationToken = req.body.registrationToken
     if (registrationToken != null && registrationToken != undefined) {
-        if (Utility.saveRegistrationToken({registrationToken: registrationToken, lastLoginAt: Date.now()})) {
+        if (Utility.saveRegistrationToken({ registrationToken: registrationToken, lastLoginAt: Date.now() })) {
             res.send({
                 "status": "Success",
-                "message": "Token Saved"    
+                "message": "Token Saved"
             })
         } else {
             res.send({
@@ -222,67 +221,68 @@ module.exports.registration = async (req, res) => {
 }
 
 function getAccessToken() {
-    return new Promise(function(resolve, reject) {
-      const jwtClient = new google.auth.JWT(
-        serviceAccount.client_email,
-        null,
-        serviceAccount.private_key,
-        SCOPES,
-        null
-      );
-      jwtClient.authorize(function(err, tokens) {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(tokens.access_token);
-      });
+    return new Promise(function (resolve, reject) {
+        const jwtClient = new google.auth.JWT(
+            serviceAccount.client_email,
+            null,
+            serviceAccount.private_key,
+            SCOPES,
+            null
+        );
+        jwtClient.authorize(function (err, tokens) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(tokens.access_token);
+        });
     });
-  }
+}
 
 
 cron.schedule("*/5 * * * * *", () => {
-    console.log("Cron Job runing every 10 second")
-    Utility.getAccessToken().then((token) => {
-    console.log("access token ", token)
-    }).catch((error) => {
-    console.log("access token error ", error)
+    console.log("Cron Job runing every 5 seconds")
+    Utility.getAccessToken().then((_) => {
+        https.get(`https://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, async (response) => {
+            let data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
+            response.on('end', async () => {
+                let parsedData = JSON.parse(data);
+                let channelId = parsedData.channel.id
+                let key = FARM_KEY + ":" + channelId
+                let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
+                let entry = {
+                    entry_id: feed.entry_id,
+                    created_at: feed.created_at,
+                    temperature: feed.field1,
+                    humidity: feed.field2
+                }
 
-    })
-    http.get(`http://api.thingspeak.com/channels/${process.env.CHANNEL_ID}/feeds.json?api_key=${process.env.API_KEY}&results=1`, async (response) => {
-        let data = '';
-        response.on('data', (chunk) => {
-            data += chunk;
-        });
-        response.on('end', async () => {
-            let parsedData = JSON.parse(data);
-            let channelId = parsedData.channel.id
-            let key = FARM_KEY + ":" + channelId
-            let feed = parsedData.feeds.length > 0 ? parsedData.feeds[0] : undefined
-            let entry = {
-                entry_id: feed.entry_id,
-                created_at: feed.created_at,
-                temperature: feed.field1,
-                humidity: feed.field2
-            }
+                if ((entry.temperature >= 29 || entry.temperature <= 23) && entry.humidity <= 70) {
+                    if (entry.temperature >= 29) {
+                        await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE AND SUBOPTIMAL HUMIDITY IN REARING SHED", entry.temperature)
+                    } else {
+                        await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE AND SUBOPTIMAL HUMIDITY IN REARING SHED", entry.temperature)
+                    }
+                } else if (entry.temperature >= 29) {
+                    await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
+                } else if (entry.temperature <= 23) {
+                    await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
+                } else if (entry.humidity <= 70) {
+                    await Utility.sendThresholdNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
+                }
 
-            if (entry.temperature >= 29) {
-                await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
-            }
-
-            if (entry.temperature <= 23) {
-                await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
-            }
-
-            if (entry.humidity <= 70) {
-                await Utility.sendThresholdNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
-            }
-
-            redisClient.set(key, value = JSON.stringify(entry)).then(() => {
-                console.log("New Feed Update - ID:" + feed.entry_id)
-            }).catch(() => {
-                console.log("Cannot update feed in db - ID:" + feed.entry_id)
+                redisClient.set(key, value = JSON.stringify(entry)).then(() => {
+                    console.log("New Feed Update - ID:" + feed.entry_id)
+                }).catch(() => {
+                    console.log("Cannot update feed in db - ID:" + feed.entry_id)
+                })
             })
         })
+    }).catch((error) => {
+        console.log("access token error ", error)
     })
+
 })
