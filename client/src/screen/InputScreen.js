@@ -78,7 +78,7 @@ const InputScreen = () => {
         onChangeText={(text) => setNumTiers(text)}
       />
 
-      <Text style={styles.label}>Dimensions of rearing shed in acre</Text>
+      <Text style={styles.label}>Dimensions of rearing shed (sqft)</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter dimensions of rearing shed"

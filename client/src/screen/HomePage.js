@@ -48,7 +48,7 @@ const HomePage = () => {
       },
       body: JSON.stringify({
         username: user.username,
-        sanitation: formatDate(currentDate.toISOString())
+        sanitation: currentDate.toISOString()
       })
     })
       .then(response => response.json())

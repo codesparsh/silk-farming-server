@@ -4,8 +4,15 @@ import { StyleSheet, View, TextInput, TouchableOpacity, Text, ToastAndroid } fro
 import { URL } from "../component/constant"
 import { LoginContext } from '../context/LoginInfoProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Sound from 'react-native-sound';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
+const notificationSound = new Sound('notification_sound.mp3', Sound.MAIN_BUNDLE, (error) => {
+    if (error) {
+      console.log('Failed to load the sound file', error);
+    }
+  });
+  
 const LoginScreen = ({ navigation }) => {
 
     const [username, setUsername] = useState('');
@@ -15,6 +22,13 @@ const LoginScreen = ({ navigation }) => {
         const unsubscribe = messaging().onMessage(async remoteMessage => {
             console.log('Message handled in the foreground!', remoteMessage);
             const { title, body } = remoteMessage.notification;
+            notificationSound.play((success) => {
+                if (success) {
+                  console.log('Notification sound played successfully');
+                } else {
+                  console.log('Failed to play the notification sound');
+                }
+              });
             Alert.alert(
                 title,
                 body,

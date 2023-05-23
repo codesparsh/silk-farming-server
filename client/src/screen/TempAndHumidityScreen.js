@@ -124,7 +124,7 @@ const GraphComponent = () => {
                         <Text style={styles.headingText}>Temperature</Text>
                             <Icon name="thermometer" type="font-awesome" size={24} color="#FFD700" />
                             <Text style={styles.infoText}>
-                                <Text style={[styles.highlight, {color: temp>"24" || temp<"29" ? '#9ACD32': '#E05263'  }]}>{parseFloat(temp).toFixed(2)}°C</Text>
+                                <Text style={[styles.highlight, {color: temp>="24" || temp<="29" ? '#E05263': '#9ACD32'  }]}>{parseFloat(temp).toFixed(2)}°C</Text>
                             </Text>
                         </View>
 
@@ -147,7 +147,7 @@ const GraphComponent = () => {
                                 backgroundGradientTo: "#FFA500",
                                 decimalPlaces: 2,
                                 color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                                labelColor: (opacity = 0.8) => `rgba(255, 255, 255, ${opacity})`,
+                                labelColor: (opacity = 0.8) => `rgba(0, 0, 0, ${opacity})`,
                                 style: {
                                     borderRadius: 16
                                 },
@@ -168,7 +168,7 @@ const GraphComponent = () => {
                             <Text style={styles.headingText}>Humidity</Text>
                             <Icon name="water" type="font-awesome" size={24} color="#00C9FF" />
                             <Text style={styles.infoText}>
-                                <Text style={[styles.highlight,{color: humidity>"70" || humidity<"40" ? '#9ACD32': '#E05263'  }]}>{parseFloat(humidity).toFixed(2)}%</Text>
+                                <Text style={[styles.highlight,{color: humidity<"70" ? '#E05263': '#9ACD32'  }]}>{parseFloat(humidity).toFixed(2)}%</Text>
                             </Text>
                         </View>
                         <LineChart
@@ -190,7 +190,7 @@ const GraphComponent = () => {
                                 backgroundGradientTo: "#92FE9D",
                                 decimalPlaces: 2,
                                 color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                                labelColor: (opacity = 0.8) => `rgba(255, 255, 255, ${opacity})`,
+                                labelColor: (opacity = 0.8) => `rgba(0, 0, 0, ${opacity})`,
                                 style: {
                                     borderRadius: 16
                                 },

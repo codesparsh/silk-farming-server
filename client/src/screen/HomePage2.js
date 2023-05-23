@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { LoginContext } from '../context/LoginInfoProvider';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { URL } from "../component/constant"
+import CalendarComponent from '../component/Calendar';
 const HomePage2 = () => {
     const { userInfo, updateUserInfo } = useContext(LoginContext);
     const [sanitation, setSanitation] = useState('NA');
@@ -20,6 +21,21 @@ const HomePage2 = () => {
 
         return `${formattedHours}:${minutes < 10 ? "0" + minutes : minutes} ${amOrPm}, ${day} ${month} ${year}`;
     }
+    const calculateDaysDifference = (utcDate) => {
+        const currentDate = new Date();
+        const utcCurrentDate = new Date(
+            currentDate.getUTCFullYear(),
+            currentDate.getUTCMonth(),
+            currentDate.getUTCDate()
+        );
+
+        const utcSelectedDate = new Date(utcDate);
+        const timeDifference = utcSelectedDate.getTime() - utcCurrentDate.getTime();
+        const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+
+        return daysDifference;
+    };
+
     const callInputScreen = () => {
         navigation.navigate('Input', { username: userInfo.username })
     }
@@ -36,7 +52,7 @@ const HomePage2 = () => {
             },
             body: JSON.stringify({
                 username: userInfo.username,
-                sanitation: formatDate(currentDate.toISOString())
+                sanitation: (currentDate.toISOString())
             })
         })
             .then(response => response.json())
@@ -92,14 +108,20 @@ const HomePage2 = () => {
             </View>
             <View style={styles.cardContainer}>
                 <TouchableOpacity style={styles.addButton} onPress={callUpdateSanitation}>
-                    <Text style={styles.addButtonLabel}>Add Sanitation Log</Text>
+                    <Text style={styles.addButtonLabel}>Add weekly hygiene log</Text>
                 </TouchableOpacity>
-                <Text style={styles.cardText}>
-                    Last sanitation was done on<Text style={styles.boldText}> {sanitation}</Text>
+                <Text style={[styles.cardText, {fontSize:14 }]}>
+                    Last recorded on<Text style={styles.boldText}> {formatDate(sanitation)}</Text>
+                </Text>
+                <Text style={[styles.cardText, {fontSize:14 }]}>
+                    <Text style={styles.boldText}>{5 - calculateDaysDifference(sanitation)} </Text>days left for next log
                 </Text>
             </View>
-            <TouchableOpacity style={styles.cardContainer} onPress={callNewScreen}>
-                <Text style={[styles.cardTitle, {color:"#53A548"}]}>View Temperature and Humidity of Shed</Text>
+            <TouchableOpacity style={[styles.cardContainer, {
+                alignItems: 'center',
+                justifyContent: 'center',
+            }]} onPress={callNewScreen}>
+                <Text style={[styles.cardTitle, { color: "#53A548", fontSize:14 }]}>View Temperature and Humidity of Shed</Text>
             </TouchableOpacity>
         </View>
     );
@@ -123,7 +145,7 @@ const styles = {
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         elevation: 2,
-        
+
     },
     cardTitle: {
         fontSize: 16,
@@ -151,13 +173,14 @@ const styles = {
         padding: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
+        // marginTop: 10,
+        marginBottom: 10,
     },
     addButtonLabel: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
-        
+
     },
     editButton: {
         position: 'absolute',
