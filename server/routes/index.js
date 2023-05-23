@@ -220,25 +220,6 @@ module.exports.registration = async (req, res) => {
     }
 }
 
-function getAccessToken() {
-    return new Promise(function (resolve, reject) {
-        const jwtClient = new google.auth.JWT(
-            serviceAccount.client_email,
-            null,
-            serviceAccount.private_key,
-            SCOPES,
-            null
-        );
-        jwtClient.authorize(function (err, tokens) {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve(tokens.access_token);
-        });
-    });
-}
-
 
 cron.schedule("*/5 * * * * *", () => {
     console.log("Cron Job runing every 5 seconds")
@@ -261,17 +242,21 @@ cron.schedule("*/5 * * * * *", () => {
                 }
 
                 if ((entry.temperature >= 29 || entry.temperature <= 23) && entry.humidity <= 70) {
+                    let msgVal = `Temperature = ${Math.round(entry.temperature)}°C \nHumidity = ${Math.round(entry.humidity)}%`
                     if (entry.temperature >= 29) {
-                        await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE AND SUBOPTIMAL HUMIDITY IN REARING SHED", entry.temperature)
+                        await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE AND SUBOPTIMAL HUMIDITY",msgVal)
                     } else {
-                        await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE AND SUBOPTIMAL HUMIDITY IN REARING SHED", entry.temperature)
+                        await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE AND SUBOPTIMAL HUMIDITY",msgVal)
                     }
                 } else if (entry.temperature >= 29) {
-                    await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", entry.temperature)
+                    let msgVal = `Temperature = ${Math.round(entry.temperature)}°C`
+                    await Utility.sendThresholdNotification("ALERT: HIGH TEMPERATURE IN REARING SHED", msgVal)
                 } else if (entry.temperature <= 23) {
-                    await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE IN REARING SHED", entry.temperature)
+                    let msgVal = `Temperature = ${Math.round(entry.temperature)}°C`
+                    await Utility.sendThresholdNotification("ALERT: LOW TEMPERATURE IN REARING SHED", msgVal)
                 } else if (entry.humidity <= 70) {
-                    await Utility.sendThresholdNotification("ALERT: SUBOPTIMAL HUMIDITY IN SILKWORM REARING SHED", entry.humidity)
+                    let msgVal = `Humidity = ${Math.round(entry.humidity)}%`
+                    await Utility.sendThresholdNotification("ALERT: SUBOPTIMAL HUMIDITY IN REARING SHED", msgVal)
                 }
 
                 redisClient.set(key, value = JSON.stringify(entry)).then(() => {
